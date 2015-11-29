@@ -17,8 +17,6 @@ require 'gepub'
 class GenWuxiaEpub
   def generate_epub_from(wuxia_title, url)
     puts "url = #{url}"
-    url_tail = url.match(/([^\/]+)(\/?$)/)[1]
-    puts "url_tail = #{url_tail}"
     page = open(url).read
     #page = open("http://www.wuxiaworld.com/cdindex-html/book-#{book_number}-chapter-#{chapter_number}/").read
     #page = open('http://baishuku.com/html/29/29363/11905089.html').read
@@ -42,7 +40,7 @@ class GenWuxiaEpub
     builder = GEPUB::Builder.new {
       language 'en'
       unique_identifier 'http:/example.jp/bookid_in_url', 'BookID', 'URL'
-      title "#{wuxia_title}_#{url_tail}"
+      title "#{wuxia_title}"
       #subtitle "book-#{book_number}-chapter-#{chapter_number}"
 
       creator 'sectrimte'
@@ -62,10 +60,10 @@ class GenWuxiaEpub
         }
       }
     }
-    epubname = File.join(File.dirname(__FILE__), "#{url_tail}.epub")
+    epubname = File.join(File.dirname(__FILE__), "#{wuxia_title}.epub")
     builder.generate_epub(epubname)
 
-    return epubname, url_tail
+    return epubname
   end
 end
 
