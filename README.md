@@ -19,8 +19,12 @@ parser.storeAllTitles
 ```
 
 ######wuxia.rb
-######create wuxia object that searches, converts, sends (titles are to be added in @works variable)
+create wuxia object that searches, converts, sends (titles are to be added in @works variable)
 ```
 wuxia = Wuxia.new
 wuxia.generateAll
 ```
+
+#####lancer.bat
+use lancer.bat to run te scripts on windows
+planned task is the way to go
