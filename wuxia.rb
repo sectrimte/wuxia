@@ -4,17 +4,23 @@ require 'pstore'
 
 class Wuxia
   def initialize
-    @@works = [:CD, :ATG]
-    @@mail_user = ['kedeomas@gmail.com', 'phu.boris@gmail.com']
+    @@works = [:ATG, :COL, :HJC, :TDG, :ISSTH]
+    @@mail_user = ['kedeomas@gmail.com', 'phu.boris@gmail.com', 'davidc2509@gmail.com']
     
     @wuxia_data = PStore.new('wuxia.pstore')
-    @cd_last_book = @wuxia_data.transaction { @wuxia_data.fetch(:cd_last_book, 0) }
-    @cd_last_chapter = @wuxia_data.transaction { @wuxia_data.fetch(:cd_last_chapter, 0) }
-    @atg_last_chapter = @wuxia_data.transaction { @wuxia_data.fetch(:atg_last_chapter, 0) }
+    @postedWorks = @wuxia_data.transaction{ @wuxia_data.fetch(:postedWorks, {} ) }
+    #create work's array
+    @@works.each do |work|
+      if @postedWorks[work].nil?
+        @postedWorks[work] = Array.new
+        puts "created #{work.to_s} posted work"
+      end
+    end
+    @wuxia_data.transaction do
+      @wuxia_data[:postedWorks] = @postedWorks
+      @wuxia_data.commit
+    end
     
-    puts "--------------------------------------------"
-    puts "last CD : book #{@cd_last_book} chapter #{@cd_last_chapter}"
-    puts "last ATG : chapter #{@atg_last_chapter}"
   end
   
   def get_release_url(url)
@@ -25,101 +31,78 @@ class Wuxia
     return result
   end
   
-  def extract_CD_url(url)
-    match = url.match(/book-(\d+)-chapter-(\d+)/)
-	if match.size == 3
-      return match[1].to_i, match[2].to_i
+  
+  def extract_url_tail(url)
+	if url[-1] != '/'
+		url = url + '/'
 	end
+    tail = url.match(/.*\/(.*?)\/$/)
+    return tail[1]
   end
   
-  def extract_ATG_url(url)
-    chapter = url.match(/chapter-(\d+)/)
-    if chapter.nil?
-	  return 0
-    else
-      return chapter[1].to_i
-	end
-  end
+  def generate(work)
+    puts "searching for #{work.to_s} release"
     
-  def generate_and_send(work)
-    puts "searching for #{work} release"
-    if @@works.include? work.to_sym
+    #get titles and links parsed
+    if @@works.include? work
       titles = @wuxia_data.transaction { @wuxia_data.fetch(:titles, {} ) }
       links = @wuxia_data.transaction { @wuxia_data.fetch(:links, {} ) }
       links = links[work]
-	  #puts links
     end
+    puts titles
     if titles.any?
-      if (work.casecmp "CD") == 0
-        links.each do |link|
-          urls = get_release_url(link)
-          urls.each do |url|
-            book,chapter = extract_CD_url(url)
-            if (@cd_last_book < book) or (@cd_last_book == book and @cd_last_chapter < chapter)
-			  puts url
-              gen = GenWuxiaEpub.new
-              epub_name, url_tail = gen.generate_epub_from(work, url)
-              mail_file = File.basename(epub_name)
-              
-              begin
-                send_mail = MailAttached.new(url_tail, mail_file)          
-                @@mail_user.each do |email|
-                  send_mail.sendMail(email)
-                end
-              ensure
-                send_mail.logout
-              end
-              
-              
-              @wuxia_data.transaction do
-                @wuxia_data[:cd_last_book] = book
-                @wuxia_data[:cd_last_chapter] = chapter
-                @wuxia_data.commit
-              end
-              @cd_last_book, @cd_last_chapter = book, chapter
+      links.each do |link|
+        urls = get_release_url(link)
+        urls.each do |url|
+          #update postedWorks
+          @postedWorks = @wuxia_data.transaction{ @wuxia_data.fetch(:postedWorks, {} ) }
+          
+          
+          tail = extract_url_tail(url)
+		  #puts "tail #{tail}"
+          next if not (tail.include? 'book' or tail.include? 'chapter' or tail.include? 'volume' )          
+          puts "extract tail from url #{url} => #{tail}"
+          #test if chapter has already been processed
+          puts @postedWorks
+          if not @postedWorks[work].include? tail
+            gen = GenWuxiaEpub.new
+            puts "creating epub named #{tail}"
+            epub_name = gen.generate_epub_from(tail, url)
+            mail_file = File.basename(epub_name)
+            
+            sendMail(tail, mail_file)
+            
+            #add done chapter to pstore
+            @postedWorks[work].push(tail)
+            @wuxia_data.transaction do
+              @wuxia_data[:postedWorks] = @postedWorks
+              @wuxia_data.commit
             end
           end
-        end
-      end
-      if (work.casecmp "ATG") == 0
-        links.each do |link|
-          urls = get_release_url(link)
-          urls.each do |url|
-            chapter = extract_ATG_url(url)
-            if (@atg_last_chapter < chapter)
-			  puts url
-              gen = GenWuxiaEpub.new
-              epub_name, url_tail = gen.generate_epub_from(work, url)
-              mail_file = File.basename(epub_name)
-              
-              begin
-                send_mail = MailAttached.new(url_tail, mail_file)          
-                @@mail_user.each do |email|
-                  send_mail.sendMail(email)
-                end
-              ensure
-                send_mail.logout
-              end
-              
-              
-              @wuxia_data.transaction do
-                @wuxia_data[:atg_last_chapter] = chapter
-                @wuxia_data.commit
-              end
-              @atg_last_chapter = chapter
-            end
-          end
-        end
-      end #end ATG   
-    end #rss found
+        
+        end #end each url in a post (link)
+      end #end each link
+    end #end titles have been parsed
   end
   
-
+  def sendMail(name, mail_file)
+    begin
+    send_mail = MailAttached.new(name, mail_file)          
+    @@mail_user.each do |email|
+      send_mail.sendMail(email)
+    end
+    ensure
+      send_mail.logout
+    end
+  end
+  
+  def generateAll
+    @@works.each do |work|
+      generate(work)
+    end
+  end
 end
 
-wuxia = Wuxia.new
 puts Time.now
-wuxia.generate_and_send("ATG")
-wuxia.generate_and_send("CD")
-
-
+wuxia = Wuxia.new
+wuxia.generateAll
