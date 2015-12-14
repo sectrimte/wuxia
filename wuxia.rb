@@ -26,15 +26,28 @@ class Wuxia
   def get_release_url(url)
     page = open(url).read
     #get div entry-content's content
-    result = page.match(/<div class="entry-content">(.*?)<\/div>/im)[1]    
+	begin
+      result = page.match(/<div class="entry-content">(.*?)<\/div>/im)[1]
+	rescue
+	  return []
+	end
     result = result.scan(/href="(.*?)"/im).flatten
-    return result
+	#test if there is a chapter link in the post
+    if not result.join.include?'index'
+	  #if not retry extracting links in first link
+      result = get_release_url(result[0])
+    end
+    if result.join.include?'index'
+      return result
+	else
+	  return []
+    end
   end
   
   
   def extract_url_tail(url)
 	if url[-1] != '/'
-		url = url + '/'
+	  url = url + '/'
 	end
     tail = url.match(/.*\/(.*?)\/$/)
     return tail[1]
