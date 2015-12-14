@@ -26,5 +26,6 @@ wuxia.generateAll
 ```
 
 #####lancer.bat
-use lancer.bat to run te scripts on windows
+use lancer.bat to run the scripts on windows
+
 planned task is the way to go
