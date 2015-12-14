@@ -13,10 +13,10 @@
 ######rss_parse.rb
 
 create parser object (titles are to be added in @works variable)
-`parser = Parse_RSS.new
-parser.storeAllTitles`
+```parser = Parse_RSS.new
+parser.storeAllTitles```
 
 ######wuxia.rb
 ######create wuxia object that searches, converts, sends (titles are to be added in @works variable)
-`wuxia = Wuxia.new
-wuxia.generateAll`
+```wuxia = Wuxia.new
+wuxia.generateAll```
