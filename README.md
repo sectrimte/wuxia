@@ -12,7 +12,7 @@
 
 change login in envoi_mail.rb line 9
 ```
-`@gmail = Gmail.connect('sectrimte', 'password')
+@gmail = Gmail.connect('sectrimte', 'password')
 ```
 
 ####usage:
