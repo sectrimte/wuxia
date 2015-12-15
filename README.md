@@ -8,6 +8,13 @@
 - gepub
 - gmail
 
+####setup:
+
+change login in envoi_mail.rb line 9
+```
+`@gmail = Gmail.connect('sectrimte', 'password')
+```
+
 ####usage:
 
 ######rss_parse.rb
