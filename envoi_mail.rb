@@ -6,7 +6,13 @@ class MailAttached
     @subject = subject
     @msg = msg
     @filename = filename
-    @gmail = Gmail.connect('davyphu', 'lovedonuts')
+    @gmail = Gmail.connect('sectrimte', 'password')
+
+
+op
+
+
+up)
   end
   
   def sendMail(dest_mail)
