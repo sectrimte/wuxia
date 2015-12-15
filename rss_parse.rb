@@ -3,7 +3,7 @@ require 'pstore'
 
 class Parse_RSS
   def initialize(url="http://www.wuxiaworld.com/feed/")
-    @works = [:CD, :ATG, :COL, :HJC, :TDG]
+    @works = [:ATG, :COL, :HJC, :TDG, :ISSTH]
     
     @url = url
     @rss = RSS::Parser.parse(@url, false)
