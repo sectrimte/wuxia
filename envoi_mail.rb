@@ -7,12 +7,6 @@ class MailAttached
     @msg = msg
     @filename = filename
     @gmail = Gmail.connect('sectrimte', 'password')
-
-
-op
-
-
-up)
   end
   
   def sendMail(dest_mail)

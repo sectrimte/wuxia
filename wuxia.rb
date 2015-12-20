@@ -5,7 +5,7 @@ require 'pstore'
 class Wuxia
   def initialize
     @@works = [:ATG, :COL, :HJC, :TDG, :ISSTH]
-    @@mail_user = ['kedeomas@gmail.com', 'phu.boris@gmail.com', 'davidc2509@gmail.com']
+    @@mail_user = ['kedeomas@gmail.com']
     
     @wuxia_data = PStore.new('wuxia.pstore')
     @postedWorks = @wuxia_data.transaction{ @wuxia_data.fetch(:postedWorks, {} ) }
